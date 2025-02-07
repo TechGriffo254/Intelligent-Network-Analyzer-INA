@@ -14,3 +14,18 @@ def ping(host: str):
         return {"host": host, "output": result.stdout}
     except Exception as e:
         return {"error": str(e)}
+@app.get("/traceroute/{host}")
+def traceroute(host: str):
+    try:
+        result = subprocess.run(["tracert", host], capture_output=True, text=True, shell=True)
+        return {"host": host, "output": result.stdout}
+    except Exception as e:
+        return {"error": str(e)}
+
+@app.get("/dnslookup/{domain}")
+def dns_lookup(domain: str):
+    try:
+        result = subprocess.run(["nslookup", domain], capture_output=True, text=True, shell=True)
+        return {"domain": domain, "output": result.stdout}
+    except Exception as e:
+        return {"error": str(e)}
