@@ -2,6 +2,13 @@ import pandas as pd
 import numpy as np
 from sklearn.ensemble import IsolationForest
 import joblib
+import os
+
+ENVIRONMENT = os.getenv("ENVIRONMENT", "development")
+
+@app.get("/config")
+def get_config():
+    return {"environment": ENVIRONMENT}
 
 # Generate simulated network traffic data
 def generate_training_data():
