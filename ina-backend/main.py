@@ -46,7 +46,11 @@ def capture_packets(count: int):
 @app.get("/tshark/{count}")
 def tshark_capture(count: int):
     try:
-        result = subprocess.run(["tshark", "-c", str(count)], capture_output=True, text=True)
+        # Use interface 6 (Wi-Fi) for packet capture
+        result = subprocess.run(["tshark", "-i", "6", "-c", str(count)], capture_output=True, text=True, timeout=10)
         return {"packets": result.stdout}
+    except subprocess.TimeoutExpired:
+        return {"error": "TShark took too long to respond."}
     except Exception as e:
         return {"error": str(e)}
+
