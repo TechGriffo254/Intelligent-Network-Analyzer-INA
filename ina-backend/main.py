@@ -1,5 +1,7 @@
 from fastapi import FastAPI
 import subprocess
+import joblib
+import numpy as np
 from scapy.all import sniff  # Importing Scapy's sniff function
 
 app = FastAPI()
@@ -42,11 +44,11 @@ def capture_packets(count: int):
     except Exception as e:
         return {"error": str(e)}
 
-# Capture network packets using TShark (Wireshark CLI)
+
 @app.get("/tshark/{count}")
 def tshark_capture(count: int):
     try:
-        # Use interface 6 (Wi-Fi) for packet capture
+       
         result = subprocess.run(["tshark", "-i", "6", "-c", str(count)], capture_output=True, text=True, timeout=10)
         return {"packets": result.stdout}
     except subprocess.TimeoutExpired:
@@ -54,3 +56,18 @@ def tshark_capture(count: int):
     except Exception as e:
         return {"error": str(e)}
 
+model = joblib.load("network_anomaly_model.pkl")
+
+@app.get("/predict-anomalies/")
+def predict_anomalies(packet_size: float, response_time: float, connections: float):
+    try:
+        # Prepare input for the model
+        input_data = np.array([[packet_size, response_time, connections]])
+        prediction = model.predict(input_data)
+
+        if prediction[0] == -1:
+            return {"result": "Anomaly detected!", "details": "Potential network issue or attack."}
+        else:
+            return {"result": "Normal traffic", "details": "No anomalies detected."}
+    except Exception as e:
+        return {"error": str(e)}
