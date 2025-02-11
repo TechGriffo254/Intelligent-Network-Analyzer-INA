@@ -59,13 +59,21 @@ def tshark_capture(count: int):
     except Exception as e:
         return {"error": str(e)}
 
-model = joblib.load("network_anomaly_model.pkl")
+model_path = os.path.join(os.path.dirname(__file__), "network_anomaly_model.pkl")
+
+# Ensure the model exists before loading
+if os.path.exists(model_path):
+    model = joblib.load(model_path)
+else:
+    model = None  # Prevent crashes if model is missing
 
 @app.get("/predict-anomalies/")
 def predict_anomalies(packet_size: float, response_time: float, connections: float):
+    if model is None:
+        return {"error": "Model file not found. Ensure it is correctly deployed."}
+
     try:
-        # Prepare input for the model
-        input_data = np.array([[packet_size, response_time, connections]])
+        input_data = [[packet_size, response_time, connections]]
         prediction = model.predict(input_data)
 
         if prediction[0] == -1:
