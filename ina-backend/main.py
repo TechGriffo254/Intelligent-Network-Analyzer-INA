@@ -1,7 +1,7 @@
-from fastapi import FastAPI
-import subprocess
+import os  # Importing the OS module
 import joblib
 import numpy as np
+from fastapi import FastAPI
 from scapy.all import sniff  # Importing Scapy's sniff function
 
 app = FastAPI()
