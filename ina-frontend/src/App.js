@@ -59,15 +59,23 @@ function App() {
 
         {pingResult && (
           <div className="mt-4 p-3 bg-gray-200 rounded-md">
-            <h3 className="font-semibold">Ping Result:</h3>
-            <pre className="text-sm text-gray-700">{JSON.stringify(pingResult, null, 2)}</pre>
+            <h3 className="font-semibold">Ping Result for {pingResult.host}:</h3>
+            <ul className="text-sm text-gray-700">
+              {pingResult.output.map((line, index) => (
+                <li key={index} className="border-b py-1">{line}</li>
+              ))}
+            </ul>
           </div>
         )}
 
         {tracerouteResult && (
           <div className="mt-4 p-3 bg-gray-200 rounded-md">
-            <h3 className="font-semibold">Traceroute Result:</h3>
-            <pre className="text-sm text-gray-700">{JSON.stringify(tracerouteResult, null, 2)}</pre>
+            <h3 className="font-semibold">Traceroute Result for {tracerouteResult.host}:</h3>
+            <ul className="text-sm text-gray-700">
+              {tracerouteResult.output.map((line, index) => (
+                <li key={index} className="border-b py-1">{line}</li>
+              ))}
+            </ul>
           </div>
         )}
 

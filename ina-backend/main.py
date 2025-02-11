@@ -1,94 +1,34 @@
-import os  # Importing the OS module
+from fastapi import FastAPI
+from pydantic import BaseModel
+import os
 import subprocess
 import joblib
-import numpy as np
-from fastapi import FastAPI
-from fastapi.middleware.cors import CORSMiddleware
-from scapy.all import sniff  # Importing Scapy's sniff function
 
 app = FastAPI()
-# Allow frontend to access the API
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=["*"],  # Allows all origins (React frontend)
-    allow_credentials=True,
-    allow_methods=["*"],  # Allows all HTTP methods
-    allow_headers=["*"],  # Allows all headers
-)
 
-@app.get("/")
-def home():
-    return {"message": "Welcome to Intelligent Network Analyzer (INA) API"}
+class AnomalyInput(BaseModel):
+    avg_rtt: float
+    max_rtt: float
+    num_hops: int
 
 @app.get("/ping/{host}")
 def ping(host: str):
-    try:
-        # Use correct ping format for Linux (Koyeb)
-        result = subprocess.run(["ping", "-c", "4", host], capture_output=True, text=True)
-        return {"host": host, "output": result.stdout}
-    except Exception as e:
-        return {"error": str(e)}
+    result = subprocess.run(["ping", "-c", "4", host], capture_output=True, text=True)
+    return {"host": host, "output": result.stdout}
 
 @app.get("/traceroute/{host}")
 def traceroute(host: str):
-    try:
-        # Use ICMP for better results on cloud servers
-        result = subprocess.run(["traceroute", "-I", host], capture_output=True, text=True)
-        return {"host": host, "output": result.stdout}
-    except Exception as e:
-        return {"error": str(e)}
-
-
-@app.get("/dnslookup/{domain}")
-def dns_lookup(domain: str):
-    try:
-        result = subprocess.run(["nslookup", domain], capture_output=True, text=True, shell=True)
-        return {"domain": domain, "output": result.stdout}
-    except Exception as e:
-        return {"error": str(e)}
-
-# Capture network packets using Scapy
-@app.get("/capture/{count}")
-def capture_packets(count: int):
-    try:
-        packets = sniff(count=count)  # Capture packets
-        packet_info = [{"summary": pkt.summary()} for pkt in packets]
-        return {"captured_packets": packet_info}
-    except Exception as e:
-        return {"error": str(e)}
-
-
-@app.get("/tshark/{count}")
-def tshark_capture(count: int):
-    try:
-       
-        result = subprocess.run(["tshark", "-i", "6", "-c", str(count)], capture_output=True, text=True, timeout=10)
-        return {"packets": result.stdout}
-    except subprocess.TimeoutExpired:
-        return {"error": "TShark took too long to respond."}
-    except Exception as e:
-        return {"error": str(e)}
+    result = subprocess.run(["traceroute", "-I", host], capture_output=True, text=True)
+    return {"host": host, "output": result.stdout}
 
 model_path = os.path.join(os.path.dirname(__file__), "network_anomaly_model.pkl")
+model = joblib.load(model_path) if os.path.exists(model_path) else None
 
-# Ensure the model exists before loading
-if os.path.exists(model_path):
-    model = joblib.load(model_path)
-else:
-    model = None  # Prevent crashes if model is missing
-
-@app.get("/predict-anomalies/")
-def predict_anomalies(packet_size: float, response_time: float, connections: float):
+@app.post("/predict-anomalies/")
+def predict_anomalies(data: AnomalyInput):
     if model is None:
-        return {"error": "Model file not found. Ensure it is correctly deployed."}
-
-    try:
-        input_data = [[packet_size, response_time, connections]]
-        prediction = model.predict(input_data)
-
-        if prediction[0] == -1:
-            return {"result": "Anomaly detected!", "details": "Potential network issue or attack."}
-        else:
-            return {"result": "Normal traffic", "details": "No anomalies detected."}
-    except Exception as e:
-        return {"error": str(e)}
+        return {"error": "Model file not found."}
+    
+    input_data = [[data.avg_rtt, data.max_rtt, data.num_hops]]
+    prediction = model.predict(input_data)
+    return {"result": "Anomaly detected!" if prediction[0] == -1 else "Normal traffic"}
