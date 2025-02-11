@@ -1,6 +1,6 @@
 import axios from "axios";
 
-const BASE_URL = "https://ina-griffo.koyeb.app"; // FastAPI backend URL
+const BASE_URL = "https://ina-griffo.koyeb.app"; // Backend URL
 
 export const pingServer = async (host) => {
   try {
