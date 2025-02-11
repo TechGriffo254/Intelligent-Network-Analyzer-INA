@@ -13,7 +13,8 @@ def home():
 @app.get("/ping/{host}")
 def ping(host: str):
     try:
-        result = subprocess.run(["ping", "-n", "4", host], capture_output=True, text=True)
+        # Use correct ping format for Linux (Koyeb)
+        result = subprocess.run(["ping", "-c", "4", host], capture_output=True, text=True)
         return {"host": host, "output": result.stdout}
     except Exception as e:
         return {"error": str(e)}
@@ -21,10 +22,12 @@ def ping(host: str):
 @app.get("/traceroute/{host}")
 def traceroute(host: str):
     try:
-        result = subprocess.run(["tracert", host], capture_output=True, text=True, shell=True)
+        # Use ICMP for better results on cloud servers
+        result = subprocess.run(["traceroute", "-I", host], capture_output=True, text=True)
         return {"host": host, "output": result.stdout}
     except Exception as e:
         return {"error": str(e)}
+
 
 @app.get("/dnslookup/{domain}")
 def dns_lookup(domain: str):
