@@ -8,7 +8,7 @@ WORKDIR /app
 RUN apt-get update && apt-get install -y iputils-ping traceroute dnsutils
 
 # Copy requirements and install dependencies
-COPY requirements.txt .
+COPY ina-backend/requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
 # Copy the rest of the backend code
