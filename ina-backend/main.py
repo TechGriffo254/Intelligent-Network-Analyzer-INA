@@ -3,9 +3,18 @@ import subprocess
 import joblib
 import numpy as np
 from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
 from scapy.all import sniff  # Importing Scapy's sniff function
 
 app = FastAPI()
+# Allow frontend to access the API
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],  # Allows all origins (React frontend)
+    allow_credentials=True,
+    allow_methods=["*"],  # Allows all HTTP methods
+    allow_headers=["*"],  # Allows all headers
+)
 
 @app.get("/")
 def home():
