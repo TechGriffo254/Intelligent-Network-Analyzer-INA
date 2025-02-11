@@ -1,4 +1,5 @@
 import os  # Importing the OS module
+import subprocess
 import joblib
 import numpy as np
 from fastapi import FastAPI
