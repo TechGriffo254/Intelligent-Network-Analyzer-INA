@@ -5,7 +5,9 @@ import os
 import subprocess
 import joblib
 import numpy as np
+import logging
 
+# Initialize FastAPI app
 app = FastAPI()
 
 # ✅ Enable CORS for React frontend
@@ -17,6 +19,10 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+# ✅ Setup logging
+logging.basicConfig(level=logging.INFO)
+
+# 📊 Model input schema
 class AnomalyInput(BaseModel):
     avg_rtt: float
     max_rtt: float
@@ -24,23 +30,40 @@ class AnomalyInput(BaseModel):
     packet_loss: float
     jitter: float
 
+# ✅ Ping Endpoint
 @app.get("/ping/{host}")
 def ping(host: str):
-    result = subprocess.run(["ping", "-c", "4", host], capture_output=True, text=True)
-    return {"host": host, "output": result.stdout}
+    try:
+        result = subprocess.run(["ping", "-c", "4", host], capture_output=True, text=True)
+        if result.returncode == 0:
+            return {"host": host, "output": result.stdout.split("\n")}
+        else:
+            return {"error": f"Failed to ping {host}"}
+    except Exception as e:
+        logging.error(f"Ping error: {e}")
+        return {"error": str(e)}
 
+# ✅ Traceroute Endpoint
 @app.get("/traceroute/{host}")
 def traceroute(host: str):
-    result = subprocess.run(["traceroute", "-I", host], capture_output=True, text=True)
-    return {"host": host, "output": result.stdout}
+    try:
+        result = subprocess.run(["traceroute", "-I", host], capture_output=True, text=True)
+        if result.returncode == 0:
+            return {"host": host, "output": result.stdout.split("\n")}
+        else:
+            return {"error": f"Failed to traceroute {host}"}
+    except Exception as e:
+        logging.error(f"Traceroute error: {e}")
+        return {"error": str(e)}
 
+# ✅ Load Machine Learning Model
 model_path = os.path.join(os.path.dirname(__file__), "network_anomaly_model.pkl")
 model = joblib.load(model_path) if os.path.exists(model_path) else None
 
+# ✅ Traffic Patterns Analysis
 @app.get("/traffic-patterns/")
 def traffic_patterns():
     try:
-        # Simulate simple traffic pattern analysis
         sample_data = {
             "latency_spike": "Detected at 3:42 PM (200ms spike)",
             "packet_loss_trend": "Consistent 5% packet loss in the last 30 min",
@@ -48,33 +71,52 @@ def traffic_patterns():
         }
         return sample_data
     except Exception as e:
+        logging.error(f"Traffic pattern error: {e}")
         return {"error": str(e)}
 
-
+# ✅ Predict Anomalies
 @app.post("/predict-anomalies/")
 def predict_anomalies(data: AnomalyInput):
     if model is None:
         return {"error": "Model file not found."}
-    
-    input_data = np.array([[data.avg_rtt, data.max_rtt, data.num_hops, data.packet_loss, data.jitter]])
-    prediction = model.predict(input_data)
+    try:
+        # Prepare input and predict
+        input_data = np.array([[data.avg_rtt, data.max_rtt, data.num_hops, data.packet_loss, data.jitter]])
+        prediction = model.predict(input_data)
 
-    if prediction[0] == -1:
-        return {"result": "Anomaly detected!", "details": "Potential network issue or attack."}
-    else:
-        return {"result": "Normal traffic", "details": "No anomalies detected."}
+        # Return results
+        result = "Anomaly detected!" if prediction[0] == -1 else "Normal traffic"
+        update_historical_logs(f"Anomaly Prediction: {result}")
+
+        return {"result": result, "details": "Potential network issue" if result == "Anomaly detected!" else "Traffic appears normal"}
+    except Exception as e:
+        logging.error(f"Anomaly prediction error: {e}")
+        return {"error": f"Prediction failed: {str(e)}"}
+
+# ✅ Historical Logs
+logs = []
 
 @app.get("/historical-logs/")
 def historical_logs():
     try:
-        # Simulated logs (In a real system, save to a database like PostgreSQL)
-        logs = [
-            {"timestamp": "2025-02-10 14:00", "event": "Ping to google.com - 50ms"},
-            {"timestamp": "2025-02-10 14:05", "event": "Traceroute anomaly detected"},
-            {"timestamp": "2025-02-10 14:10", "event": "Anomaly detected: high latency"},
-        ]
-        return logs
+        return {"logs": logs}
     except Exception as e:
+        logging.error(f"Historical logs error: {e}")
         return {"error": str(e)}
-    
+
+# ✅ Helper: Update logs
+def update_historical_logs(event):
+    logs.append({"timestamp": get_current_time(), "event": event})
+    if len(logs) > 100:
+        logs.pop(0)
+
+# ✅ Helper: Get current time
+from datetime import datetime
+def get_current_time():
+    return datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+
+# ✅ Health Check
+@app.get("/")
+def home():
+    return {"message": "Welcome to Intelligent Network Analyzer (INA) API"}
 
