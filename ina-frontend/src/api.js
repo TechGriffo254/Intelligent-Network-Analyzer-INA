@@ -75,10 +75,15 @@ export const predictAnomalies = async (avgRTT, maxRTT, numHops, packetLoss, jitt
       num_hops: numHops,
       packet_loss: packetLoss,
       jitter: jitter
+    }, {
+      headers: {
+        "Content-Type": "application/json"
+      }
     });
     return response.data;
   } catch (error) {
-    return { error: "Failed to fetch anomaly detection data." };
+    console.error("Anomaly Detection API Error:", error);
+    return { error: `Failed to fetch anomaly detection data: ${error.message}` };
   }
 };
 export const getTrafficPatterns = async () => {
