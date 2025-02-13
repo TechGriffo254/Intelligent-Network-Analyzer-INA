@@ -37,6 +37,20 @@ def traceroute(host: str):
 model_path = os.path.join(os.path.dirname(__file__), "network_anomaly_model.pkl")
 model = joblib.load(model_path) if os.path.exists(model_path) else None
 
+@app.get("/traffic-patterns/")
+def traffic_patterns():
+    try:
+        # Simulate simple traffic pattern analysis
+        sample_data = {
+            "latency_spike": "Detected at 3:42 PM (200ms spike)",
+            "packet_loss_trend": "Consistent 5% packet loss in the last 30 min",
+            "anomaly_frequency": "3 anomalies detected in the past hour"
+        }
+        return sample_data
+    except Exception as e:
+        return {"error": str(e)}
+
+
 @app.post("/predict-anomalies/")
 def predict_anomalies(data: AnomalyInput):
     if model is None:
@@ -49,3 +63,18 @@ def predict_anomalies(data: AnomalyInput):
         return {"result": "Anomaly detected!", "details": "Potential network issue or attack."}
     else:
         return {"result": "Normal traffic", "details": "No anomalies detected."}
+
+@app.get("/historical-logs/")
+def historical_logs():
+    try:
+        # Simulated logs (In a real system, save to a database like PostgreSQL)
+        logs = [
+            {"timestamp": "2025-02-10 14:00", "event": "Ping to google.com - 50ms"},
+            {"timestamp": "2025-02-10 14:05", "event": "Traceroute anomaly detected"},
+            {"timestamp": "2025-02-10 14:10", "event": "Anomaly detected: high latency"},
+        ]
+        return logs
+    except Exception as e:
+        return {"error": str(e)}
+    
+

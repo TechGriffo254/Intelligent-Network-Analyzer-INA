@@ -125,13 +125,57 @@ function App() {
           Run Anomaly Detection
         </button>
 
-        {/* Display Anomaly Detection Results */}
-        {predictionResult && (
-          <div className="mt-4 p-3 bg-gray-200 rounded-md">
-            <h3 className="font-semibold">Anomaly Detection Result:</h3>
-            <pre className="text-sm text-gray-700">{JSON.stringify(predictionResult, null, 2)}</pre>
-          </div>
-        )}
+       {/* Display Anomaly Detection Results with Insights */}
+{predictionResult && (
+  <div className="mt-4 p-3 bg-gray-200 rounded-md">
+    <h3 className="font-semibold">Anomaly Detection Result:</h3>
+    <pre className="text-sm text-gray-700">{JSON.stringify(predictionResult, null, 2)}</pre>
+    
+    {/* Display Insights */}
+    {predictionResult.result === "Anomaly detected!" ? (
+      <div className="mt-2 p-2 bg-red-100 border border-red-500 rounded">
+        🚨 <strong>Warning:</strong> Anomalous activity detected.  
+        <ul className="list-disc ml-5 text-sm">
+          <li>📈 Possible DDoS attack.</li>
+          <li>🔍 High latency or packet loss.</li>
+          <li>⚠️ Unusual routing detected.</li>
+        </ul>
+      </div>
+    ) : (
+      <div className="mt-2 p-2 bg-green-100 border border-green-500 rounded">
+        ✅ <strong>Status:</strong> Network appears normal.  
+      </div>
+    )}
+  </div>
+)}
+    {/* Traffic Pattern Insights */}
+<div className="mt-6">
+  <h2 className="text-lg font-semibold text-center mb-3">📊 Traffic Pattern Analysis</h2>
+
+  <button
+    className="w-full bg-purple-500 text-white p-2 rounded-md hover:bg-purple-700 mb-4"
+    onClick={async () => {
+      const patterns = await getTrafficPatterns();
+      alert(`Traffic Patterns:\n- Latency: ${patterns.latency_spike}\n- Packet Loss: ${patterns.packet_loss_trend}\n- Anomalies: ${patterns.anomaly_frequency}`);
+    }}
+  >
+    Analyze Traffic Patterns
+  </button>
+</div>
+
+{/* Historical Logs */}
+<div className="mt-6">
+  <h2 className="text-lg font-semibold text-center mb-3">📜 Historical Logs</h2>
+  <button
+    className="w-full bg-yellow-500 text-white p-2 rounded-md hover:bg-yellow-700 mb-4"
+    onClick={async () => {
+      const logs = await getHistoricalLogs();
+      alert(`Historical Logs:\n${logs.map(log => `${log.timestamp} - ${log.event}`).join('\n')}`);
+    }}
+  >
+    View Historical Logs
+  </button>
+</div>
 
         {/* Real-Time Chart Section */}
         <div className="mt-6">

@@ -81,3 +81,21 @@ export const predictAnomalies = async (avgRTT, maxRTT, numHops, packetLoss, jitt
     return { error: "Failed to fetch anomaly detection data." };
   }
 };
+export const getTrafficPatterns = async () => {
+  try {
+    const response = await axios.get(`${BASE_URL}/traffic-patterns/`);
+    return response.data;
+  } catch (error) {
+    return { error: "Failed to fetch traffic pattern analysis." };
+  }
+};
+
+export const getHistoricalLogs = async () => {
+  try {
+    const response = await axios.get(`${BASE_URL}/historical-logs/`);
+    return response.data;
+  } catch (error) {
+    return { error: "Failed to fetch historical logs." };
+  }
+};
+
