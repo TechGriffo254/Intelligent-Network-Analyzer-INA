@@ -79,18 +79,18 @@ def traffic_patterns():
 def predict_anomalies(data: AnomalyInput):
     if model is None:
         return {"error": "Model file not found."}
+    
+    # Only use the first 3 features that the model expects
+    input_data = np.array([[data.avg_rtt, data.max_rtt, data.num_hops]])
+    
     try:
-        # Prepare input and predict
-        input_data = np.array([[data.avg_rtt, data.max_rtt, data.num_hops, data.packet_loss, data.jitter]])
         prediction = model.predict(input_data)
-
-        # Return results
-        result = "Anomaly detected!" if prediction[0] == -1 else "Normal traffic"
-        update_historical_logs(f"Anomaly Prediction: {result}")
-
-        return {"result": result, "details": "Potential network issue" if result == "Anomaly detected!" else "Traffic appears normal"}
+        if prediction[0] == -1:
+            return {"result": "Anomaly detected!", "details": "Potential network issue or attack."}
+        else:
+            return {"result": "Normal traffic", "details": "No anomalies detected."}
     except Exception as e:
-        logging.error(f"Anomaly prediction error: {e}")
+        return {"error": f"Prediction failed: {str(e)}"}S
         return {"error": f"Prediction failed: {str(e)}"}
 
 # ✅ Historical Logs
