@@ -34,26 +34,26 @@ class AnomalyInput(BaseModel):
 @app.get("/ping/{host}")
 def ping(host: str):
     try:
-        result = subprocess.run(["ping", "-c", "4", host], capture_output=True, text=True)
-        if result.returncode == 0:
-            return {"host": host, "output": result.stdout.split("\n")}
+        # Run ping with IPv4 enforcement
+        result = subprocess.run(["ping", "-c", "4", "-4", host], capture_output=True, text=True)
+        if result.returncode == 0 and result.stdout:
+            return {"host": host, "output": result.stdout}
         else:
-            return {"error": f"Failed to ping {host}"}
+            return {"error": f"Ping failed: {result.stderr}"}
     except Exception as e:
-        logging.error(f"Ping error: {e}")
         return {"error": str(e)}
 
-# ✅ Traceroute Endpoint
+
 @app.get("/traceroute/{host}")
 def traceroute(host: str):
     try:
-        result = subprocess.run(["traceroute", "-I", host], capture_output=True, text=True)
-        if result.returncode == 0:
-            return {"host": host, "output": result.stdout.split("\n")}
+        # Run traceroute without DNS resolution for better performance
+        result = subprocess.run(["traceroute", "-n", host], capture_output=True, text=True)
+        if result.returncode == 0 and result.stdout:
+            return {"host": host, "output": result.stdout}
         else:
-            return {"error": f"Failed to traceroute {host}"}
+            return {"error": f"Traceroute failed: {result.stderr}"}
     except Exception as e:
-        logging.error(f"Traceroute error: {e}")
         return {"error": str(e)}
 
 # ✅ Load Machine Learning Model
