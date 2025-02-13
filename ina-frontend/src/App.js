@@ -1,20 +1,45 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { pingServer, tracerouteServer, predictAnomalies, parsePingData, parseTracerouteData } from "./api";
+import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from "recharts";
 
 function App() {
   const [host, setHost] = useState("");
   const [pingResult, setPingResult] = useState({ host: "", output: [] });
   const [tracerouteResult, setTracerouteResult] = useState({ host: "", output: [] });
   const [predictionResult, setPredictionResult] = useState(null);
+  const [pingChartData, setPingChartData] = useState([]);
+  const [tracerouteChartData, setTracerouteChartData] = useState([]);
+  const [anomalyChartData, setAnomalyChartData] = useState([]);
+
+  // Function to add new data points to charts
+  const updateChartData = (metricType, data) => {
+    const timestamp = new Date().toLocaleTimeString();
+    const newPoint = { time: timestamp, value: data };
+    if (metricType === "ping") {
+      setPingChartData((prev) => [...prev.slice(-19), newPoint]);
+    } else if (metricType === "traceroute") {
+      setTracerouteChartData((prev) => [...prev.slice(-19), newPoint]);
+    } else if (metricType === "anomaly") {
+      setAnomalyChartData((prev) => [...prev.slice(-19), newPoint]);
+    }
+  };
 
   const handlePing = async () => {
     const result = await pingServer(host);
     setPingResult(result || { host: host, output: [] });
+    if (result.output) {
+      const pingMetrics = parsePingData(result.output.join("\n"));
+      updateChartData("ping", pingMetrics.avgRTT);
+    }
   };
 
   const handleTraceroute = async () => {
     const result = await tracerouteServer(host);
     setTracerouteResult(result || { host: host, output: [] });
+    if (result.output) {
+      const tracerouteMetrics = parseTracerouteData(result.output.join("\n"));
+      updateChartData("traceroute", tracerouteMetrics.maxRTT);
+    }
   };
 
   const handleAutomaticAnomalyDetection = async () => {
@@ -36,6 +61,7 @@ function App() {
     );
 
     setPredictionResult(result);
+    updateChartData("anomaly", result.result === "Anomaly detected!" ? 1 : 0);
   };
 
   return (
@@ -104,6 +130,56 @@ function App() {
             <pre className="text-sm text-gray-700">{JSON.stringify(predictionResult, null, 2)}</pre>
           </div>
         )}
+
+        {/* Real-Time Chart Section */}
+        <div className="mt-6">
+          <h2 className="text-lg font-semibold text-center mb-3">Real-Time Network Metrics</h2>
+
+          {/* Ping Chart */}
+          <div className="mb-6">
+            <h3 className="text-sm font-semibold text-blue-600">Ping (ms)</h3>
+            <ResponsiveContainer width="100%" height={200}>
+              <LineChart data={pingChartData}>
+                <CartesianGrid strokeDasharray="3 3" />
+                <XAxis dataKey="time" />
+                <YAxis />
+                <Tooltip />
+                <Legend />
+                <Line type="monotone" dataKey="value" stroke="#8884d8" name="Ping (ms)" />
+              </LineChart>
+            </ResponsiveContainer>
+          </div>
+
+          {/* Traceroute Chart */}
+          <div className="mb-6">
+            <h3 className="text-sm font-semibold text-green-600">Traceroute Max RTT (ms)</h3>
+            <ResponsiveContainer width="100%" height={200}>
+              <LineChart data={tracerouteChartData}>
+                <CartesianGrid strokeDasharray="3 3" />
+                <XAxis dataKey="time" />
+                <YAxis />
+                <Tooltip />
+                <Legend />
+                <Line type="monotone" dataKey="value" stroke="#82ca9d" name="Traceroute Max RTT (ms)" />
+              </LineChart>
+            </ResponsiveContainer>
+          </div>
+
+          {/* Anomaly Detection Chart */}
+          <div className="mb-6">
+            <h3 className="text-sm font-semibold text-red-600">Anomaly Detection Events</h3>
+            <ResponsiveContainer width="100%" height={200}>
+              <LineChart data={anomalyChartData}>
+                <CartesianGrid strokeDasharray="3 3" />
+                <XAxis dataKey="time" />
+                <YAxis />
+                <Tooltip />
+                <Legend />
+                <Line type="monotone" dataKey="value" stroke="#FF0000" name="Anomalies Detected" />
+              </LineChart>
+            </ResponsiveContainer>
+          </div>
+        </div>
       </div>
     </div>
   );
