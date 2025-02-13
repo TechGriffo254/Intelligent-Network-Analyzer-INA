@@ -57,7 +57,9 @@ function App() {
     const result = await predictAnomalies(
       pingMetrics.avgRTT || 0,
       tracerouteMetrics.maxRTT || 0,
-      tracerouteMetrics.hops || 0
+      tracerouteMetrics.hops || 0,
+      pingMetrics.packetLoss || 0,
+      pingMetrics.jitter || 0
     );
 
     setPredictionResult(result);
@@ -136,49 +138,28 @@ function App() {
           <h2 className="text-lg font-semibold text-center mb-3">Real-Time Network Metrics</h2>
 
           {/* Ping Chart */}
-          <div className="mb-6">
-            <h3 className="text-sm font-semibold text-blue-600">Ping (ms)</h3>
-            <ResponsiveContainer width="100%" height={200}>
-              <LineChart data={pingChartData}>
-                <CartesianGrid strokeDasharray="3 3" />
-                <XAxis dataKey="time" />
-                <YAxis />
-                <Tooltip />
-                <Legend />
-                <Line type="monotone" dataKey="value" stroke="#8884d8" name="Ping (ms)" />
-              </LineChart>
-            </ResponsiveContainer>
-          </div>
+          <ResponsiveContainer width="100%" height={200}>
+            <LineChart data={pingChartData}>
+              <CartesianGrid strokeDasharray="3 3" />
+              <XAxis dataKey="time" />
+              <YAxis />
+              <Tooltip />
+              <Legend />
+              <Line type="monotone" dataKey="value" stroke="#8884d8" name="Ping (ms)" />
+            </LineChart>
+          </ResponsiveContainer>
 
           {/* Traceroute Chart */}
-          <div className="mb-6">
-            <h3 className="text-sm font-semibold text-green-600">Traceroute Max RTT (ms)</h3>
-            <ResponsiveContainer width="100%" height={200}>
-              <LineChart data={tracerouteChartData}>
-                <CartesianGrid strokeDasharray="3 3" />
-                <XAxis dataKey="time" />
-                <YAxis />
-                <Tooltip />
-                <Legend />
-                <Line type="monotone" dataKey="value" stroke="#82ca9d" name="Traceroute Max RTT (ms)" />
-              </LineChart>
-            </ResponsiveContainer>
-          </div>
-
-          {/* Anomaly Detection Chart */}
-          <div className="mb-6">
-            <h3 className="text-sm font-semibold text-red-600">Anomaly Detection Events</h3>
-            <ResponsiveContainer width="100%" height={200}>
-              <LineChart data={anomalyChartData}>
-                <CartesianGrid strokeDasharray="3 3" />
-                <XAxis dataKey="time" />
-                <YAxis />
-                <Tooltip />
-                <Legend />
-                <Line type="monotone" dataKey="value" stroke="#FF0000" name="Anomalies Detected" />
-              </LineChart>
-            </ResponsiveContainer>
-          </div>
+          <ResponsiveContainer width="100%" height={200}>
+            <LineChart data={tracerouteChartData}>
+              <CartesianGrid strokeDasharray="3 3" />
+              <XAxis dataKey="time" />
+              <YAxis />
+              <Tooltip />
+              <Legend />
+              <Line type="monotone" dataKey="value" stroke="#82ca9d" name="Traceroute Max RTT (ms)" />
+            </LineChart>
+          </ResponsiveContainer>
         </div>
       </div>
     </div>
