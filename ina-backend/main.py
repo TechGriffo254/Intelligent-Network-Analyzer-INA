@@ -74,7 +74,7 @@ def traffic_patterns():
         logging.error(f"Traffic pattern error: {e}")
         return {"error": str(e)}
 
-# ✅ Predict Anomalies
+#  Predict Anomalies
 @app.post("/predict-anomalies/")
 def predict_anomalies(data: AnomalyInput):
     if model is None:
@@ -90,10 +90,10 @@ def predict_anomalies(data: AnomalyInput):
         else:
             return {"result": "Normal traffic", "details": "No anomalies detected."}
     except Exception as e:
-        return {"error": f"Prediction failed: {str(e)}"}S
+        return {"error": f"Prediction failed: {str(e)}"}
         return {"error": f"Prediction failed: {str(e)}"}
 
-# ✅ Historical Logs
+#  Historical Logs
 logs = []
 
 @app.get("/historical-logs/")
@@ -104,7 +104,7 @@ def historical_logs():
         logging.error(f"Historical logs error: {e}")
         return {"error": str(e)}
 
-# ✅ Helper: Update logs
+#  Helper: Update logs
 def update_historical_logs(event):
     logs.append({"timestamp": get_current_time(), "event": event})
     if len(logs) > 100:
