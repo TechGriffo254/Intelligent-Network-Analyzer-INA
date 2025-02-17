@@ -32,11 +32,11 @@ class AnomalyInput(BaseModel):
 #  In-memory log storage
 logs = []
 
-#  Helper: Get current time
+# Helper: Get current time
 def get_current_time():
     return datetime.now().strftime("%Y-%m-%d %H:%M:%S")
 
-#  Helper: Update logs
+# Helper: Update logs
 def update_historical_logs(event):
     logs.append({"timestamp": get_current_time(), "event": event})
     if len(logs) > 100:
@@ -68,7 +68,7 @@ def traceroute(host: str):
     except Exception as e:
         return {"error": str(e)}
 
-# Load Machine Learning Model
+#  Load Machine Learning Model
 model_path = os.path.join(os.path.dirname(__file__), "network_anomaly_model.pkl")
 model = joblib.load(model_path) if os.path.exists(model_path) else None
 
@@ -78,7 +78,7 @@ def predict_anomalies(data: AnomalyInput):
     if model is None:
         return {"error": "Model file not found."}
     
-    # Only use the 3 features that the model expects
+    #  Only use the 3 features that the model expects
     input_data = np.array([[data.avg_rtt, data.max_rtt, data.num_hops]])
     
     try:
@@ -89,7 +89,7 @@ def predict_anomalies(data: AnomalyInput):
     except Exception as e:
         return {"error": f"Prediction failed: {str(e)}"}
 
-#  Historical Logs
+# Historical Logs
 @app.get("/historical-logs/")
 def historical_logs():
     try:
