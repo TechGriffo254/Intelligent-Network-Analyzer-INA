@@ -1,4 +1,4 @@
-from fastapi import FastAPI
+from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 import os
@@ -7,29 +7,30 @@ import joblib
 import numpy as np
 import logging
 from datetime import datetime
+import asyncio
 
 # Initialize FastAPI app
 app = FastAPI()
 
-#  Enable CORS for React frontend
+# Enable CORS for React frontend
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=["*"],  # Consider restricting this in production
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
 
-#  Setup logging
-logging.basicConfig(level=logging.INFO)
+# Setup logging
+logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 
-#  Model input schema with only 3 fields
+# Model input schema with only 3 fields
 class AnomalyInput(BaseModel):
     avg_rtt: float
     max_rtt: float
     num_hops: int
 
-#  In-memory log storage
+# In-memory log storage
 logs = []
 
 # Helper: Get current time
@@ -42,43 +43,50 @@ def update_historical_logs(event):
     if len(logs) > 100:
         logs.pop(0)
 
-#  Ping Endpoint
+# Helper: Run command asynchronously
+async def run_command(command):
+    process = await asyncio.create_subprocess_exec(*command, stdout=asyncio.subprocess.PIPE, stderr=asyncio.subprocess.PIPE)
+    stdout, stderr = await process.communicate()
+    return process.returncode, stdout.decode(), stderr.decode()
+
+# Ping Endpoint
 @app.get("/ping/{host}")
-def ping(host: str):
+async def ping(host: str):
     try:
-        result = subprocess.run(["ping", "-c", "4", "-4", host], capture_output=True, text=True)
-        if result.returncode == 0 and result.stdout:
+        returncode, stdout, stderr = await run_command(["ping", "-c", "4", "-4", host])
+        if returncode == 0:
             update_historical_logs(f"Ping test for {host}")
-            return {"host": host, "output": result.stdout}
+            return {"host": host, "output": stdout}
         else:
-            return {"error": f"Ping failed: {result.stderr}"}
+            raise HTTPException(status_code=400, detail=f"Ping failed: {stderr}")
     except Exception as e:
-        return {"error": str(e)}
+        logging.error(f"Error pinging {host}: {str(e)}")
+        raise HTTPException(status_code=500, detail=str(e))
 
-#  Traceroute Endpoint
+# Traceroute Endpoint
 @app.get("/traceroute/{host}")
-def traceroute(host: str):
+async def traceroute(host: str):
     try:
-        result = subprocess.run(["traceroute", "-n", host], capture_output=True, text=True)
-        if result.returncode == 0 and result.stdout:
+        returncode, stdout, stderr = await run_command(["traceroute", "-n", host])
+        if returncode == 0:
             update_historical_logs(f"Traceroute test for {host}")
-            return {"host": host, "output": result.stdout}
+            return {"host": host, "output": stdout}
         else:
-            return {"error": f"Traceroute failed: {result.stderr}"}
+            raise HTTPException(status_code=400, detail=f"Traceroute failed: {stderr}")
     except Exception as e:
-        return {"error": str(e)}
+        logging.error(f"Error tracerouting {host}: {str(e)}")
+        raise HTTPException(status_code=500, detail=str(e))
 
-#  Load Machine Learning Model
+# Load Machine Learning Model
 model_path = os.path.join(os.path.dirname(__file__), "network_anomaly_model.pkl")
 model = joblib.load(model_path) if os.path.exists(model_path) else None
 
-#  Predict Anomalies
+# Predict Anomalies
 @app.post("/predict-anomalies/")
 def predict_anomalies(data: AnomalyInput):
     if model is None:
-        return {"error": "Model file not found."}
+        raise HTTPException(status_code=500, detail="Model file not found.")
     
-    #  Only use the 3 features that the model expects
     input_data = np.array([[data.avg_rtt, data.max_rtt, data.num_hops]])
     
     try:
@@ -87,7 +95,8 @@ def predict_anomalies(data: AnomalyInput):
         update_historical_logs(f"Anomaly detection run - Result: {result}")
         return {"result": result}
     except Exception as e:
-        return {"error": f"Prediction failed: {str(e)}"}
+        logging.error(f"Prediction failed: {str(e)}")
+        raise HTTPException(status_code=500, detail=str(e))
 
 # Historical Logs
 @app.get("/historical-logs/")
@@ -96,9 +105,9 @@ def historical_logs():
         return {"logs": logs}
     except Exception as e:
         logging.error(f"Historical logs error: {e}")
-        return {"error": str(e)}
+        raise HTTPException(status_code=500, detail=str(e))
 
-#  Health Check
+# Health Check
 @app.get("/")
 def home():
     return {"message": "Welcome to Intelligent Network Analyzer (INA) API"}
