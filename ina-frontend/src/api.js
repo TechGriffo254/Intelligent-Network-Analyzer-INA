@@ -133,14 +133,33 @@ export const getSecurityAlerts = async (severity = null) => {
   }
 };
 
-// 🆕 Get Performance Metrics
+// 🆕 Get Performance Metrics - Enhanced with better error handling and fallback data
 export const getPerformanceMetrics = async () => {
   try {
-    const response = await axios.get(`${BASE_URL}/performance/metrics`);
+    const response = await axios.get(`${BASE_URL}/performance/metrics`, {
+      headers: {
+        'Accept': 'application/json',
+        'Content-Type': 'application/json'
+      },
+      timeout: 10000 // 10 second timeout
+    });
     return response.data;
   } catch (error) {
     console.error("Performance metrics error:", error);
-    return { error: "Failed to fetch performance metrics." };
+    // Return fallback data with the error flag
+    return { 
+      error: true,
+      message: error.message || "Failed to fetch performance metrics",
+      ping_response_time: 50.0,
+      cpu_usage_percent: 45.0,
+      memory_usage_percent: 60.0,
+      activity: [
+        {"name": "Ping", "value": 10},
+        {"name": "Traceroute", "value": 5},
+        {"name": "Analysis", "value": 8}
+      ],
+      events_last_hour: 23
+    };
   }
 };
 
@@ -151,6 +170,22 @@ export const getDashboardSummary = async () => {
     return response.data;
   } catch (error) {
     console.error("Dashboard summary error:", error);
-    return { error: "Failed to fetch dashboard summary." };
+    return { 
+      error: true,
+      message: error.message || "Failed to fetch dashboard summary",
+      status: "warning",
+      alerts: {
+        counts: { critical: 0, high: 0, medium: 0, low: 0 },
+        total: 0,
+        recent: []
+      },
+      traffic: {
+        protocols: [{ name: "TCP", value: 75 }, { name: "UDP", value: 25 }],
+        topSources: [{ ip: "192.168.1.1", value: 50 }],
+        topDestinations: [{ ip: "8.8.8.8", value: 40 }]
+      },
+      network: { devices: 5, subnets: 1 },
+      recent_logs: []
+    };
   }
 };
