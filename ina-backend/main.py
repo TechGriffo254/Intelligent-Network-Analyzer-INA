@@ -1,8 +1,8 @@
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
-from network_discovery import network_discovery
-from traffic_analysis import traffic_analyzer
+import network_discovery
+import traffic_analysis
 
 import os
 import subprocess
