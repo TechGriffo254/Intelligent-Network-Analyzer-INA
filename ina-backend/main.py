@@ -2,6 +2,7 @@ from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 from network_discovery import network_discovery
+from traffic_analysis import traffic_analyzer
 
 import os
 import subprocess
@@ -120,4 +121,12 @@ async def discover_network(subnet: str):
     result = await network_discovery.discover_network(subnet)
     if "error" not in result:
         update_historical_logs(f"Network discovery on {subnet}")
+    return result
+# Traffic Analysis Endpoint
+@app.get("/traffic/analyze")
+async def analyze_traffic():
+    """Analyze current network traffic"""
+    result = await traffic_analyzer.analyze_network_traffic()
+    if "error" not in result:
+        update_historical_logs("Traffic analysis performed")
     return result
