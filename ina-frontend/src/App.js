@@ -978,22 +978,30 @@ function App() {
   };
 
   
-// Performance Metrics Fetching Function 
+// Performance Metrics Fetching Function (with error handling)
 const fetchPerformanceMetrics = async () => {
   setIsLoadingPerformance(true);
+  
   try {
-    // Direct URL to ensure we're hitting the right endpoint
-    const response = await fetch('https://ina-griffo.koyeb.app/performance/metrics');
+    const data = await getPerformanceMetrics();
     
-    if (!response.ok) {
-      throw new Error(`Failed to fetch performance metrics: ${response.status}`);
+    if (data.error) {
+      toast.error("Failed to fetch performance metrics. Using demo data instead.");
+      // Still use the data from the API response (which includes fallback values)
+      setPerformanceMetrics({
+        ping_response_time: data.ping_response_time,
+        cpu_usage_percent: data.cpu_usage_percent,
+        memory_usage_percent: data.memory_usage_percent,
+        activity: data.activity,
+        events_last_hour: data.events_last_hour
+      });
+    } else {
+      // No error, use the data directly
+      setPerformanceMetrics(data);
     }
-    
-    const data = await response.json();
-    setPerformanceMetrics(data);
-  } catch (error) {
-    console.error("Performance metrics error:", error);
-    // Fallback data with the exact structure of your API response
+  } catch (e) {
+    // Additional safety
+    console.error("Unexpected error in fetchPerformanceMetrics:", e);
     setPerformanceMetrics({
       ping_response_time: 50.0,
       cpu_usage_percent: 45.0,
@@ -1005,18 +1013,16 @@ const fetchPerformanceMetrics = async () => {
       ],
       events_last_hour: 23
     });
-    
     toast.error("Failed to fetch performance metrics. Using demo data instead.");
   } finally {
     setIsLoadingPerformance(false);
   }
 };
-
 // Add this useEffect to fetch performance data when the tab is active
+// Add this useEffect to your App.js
 useEffect(() => {
   if (activeTab === "performance") {
     fetchPerformanceMetrics();
-    // Refresh data every 30 seconds
     const interval = setInterval(fetchPerformanceMetrics, 30000);
     return () => clearInterval(interval);
   }
