@@ -977,92 +977,137 @@ function App() {
     );
   };
 
-  // Performance Monitoring Tab
-  const renderPerformanceMonitoring = () => {
-    if (isLoadingPerformance) {
-      return (
-        <div className="flex justify-center items-center h-64">
-          <p className="text-lg text-gray-600">Loading performance metrics...</p>
-        </div>
-      );
+  
+// Performance Metrics Fetching Function 
+const fetchPerformanceMetrics = async () => {
+  setIsLoadingPerformance(true);
+  try {
+    // Direct URL to ensure we're hitting the right endpoint
+    const response = await fetch('https://ina-griffo.koyeb.app/performance/metrics');
+    
+    if (!response.ok) {
+      throw new Error(`Failed to fetch performance metrics: ${response.status}`);
     }
+    
+    const data = await response.json();
+    setPerformanceMetrics(data);
+  } catch (error) {
+    console.error("Performance metrics error:", error);
+    // Fallback data with the exact structure of your API response
+    setPerformanceMetrics({
+      ping_response_time: 50.0,
+      cpu_usage_percent: 45.0,
+      memory_usage_percent: 60.0,
+      activity: [
+        {"name": "Ping", "value": 10},
+        {"name": "Traceroute", "value": 5},
+        {"name": "Analysis", "value": 8}
+      ],
+      events_last_hour: 23
+    });
+    
+    toast.error("Failed to fetch performance metrics. Using demo data instead.");
+  } finally {
+    setIsLoadingPerformance(false);
+  }
+};
 
-    if (!performanceMetrics) {
-      return (
-        <div className="flex justify-center items-center h-64">
-          <p className="text-lg text-red-600">Failed to load performance metrics. Please try again.</p>
-        </div>
-      );
-    }
+// Add this useEffect to fetch performance data when the tab is active
+useEffect(() => {
+  if (activeTab === "performance") {
+    fetchPerformanceMetrics();
+    // Refresh data every 30 seconds
+    const interval = setInterval(fetchPerformanceMetrics, 30000);
+    return () => clearInterval(interval);
+  }
+}, [activeTab]);
 
+// Performance Monitoring Tab
+const renderPerformanceMonitoring = () => {
+  if (isLoadingPerformance) {
     return (
-      <div>
-        <h2 className="text-2xl font-bold text-blue-700 mb-4">Performance Monitoring</h2>
-        
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-          <div className="bg-white p-4 rounded-lg shadow">
-            <h3 className="text-lg font-semibold mb-1">Ping Response</h3>
-            <div className="flex items-end gap-2">
-              <span className="text-3xl font-bold">{performanceMetrics.ping_response_time.toFixed(1)}</span>
-              <span className="text-gray-600 mb-1">ms</span>
-            </div>
-          </div>
-          
-          <div className="bg-white p-4 rounded-lg shadow">
-          <h3 className="text-lg font-semibold mb-1">CPU Usage</h3>
-            <div className="flex items-end gap-2">
-              <span className="text-3xl font-bold">{performanceMetrics.cpu_usage_percent.toFixed(1)}</span>
-              <span className="text-gray-600 mb-1">%</span>
-            </div>
-          </div>
-          
-          <div className="bg-white p-4 rounded-lg shadow">
-            <h3 className="text-lg font-semibold mb-1">Memory Usage</h3>
-            <div className="flex items-end gap-2">
-              <span className="text-3xl font-bold">{performanceMetrics.memory_usage_percent.toFixed(1)}</span>
-              <span className="text-gray-600 mb-1">%</span>
-            </div>
-          </div>
-        </div>
-        
-        {/* Activity Chart */}
-        <div className="bg-white p-4 rounded-lg shadow mb-6">
-          <h3 className="text-lg font-semibold mb-3">System Activity</h3>
-          <div className="h-64">
-            <ResponsiveContainer width="100%" height="100%">
-              <BarChart
-                data={performanceMetrics.activity}
-                margin={{ top: 5, right: 30, left: 20, bottom: 5 }}
-              >
-                <CartesianGrid strokeDasharray="3 3" />
-                <XAxis dataKey="name" />
-                <YAxis />
-                <Tooltip />
-                <Legend />
-                <Bar dataKey="value" fill="#8884d8" name="Event Count" />
-              </BarChart>
-            </ResponsiveContainer>
+      <div className="flex justify-center items-center h-64">
+        <p className="text-lg text-gray-600">Loading performance metrics...</p>
+      </div>
+    );
+  }
+  
+  if (!performanceMetrics) {
+    return (
+      <div className="flex justify-center items-center h-64">
+        <p className="text-lg text-red-600">Failed to load performance metrics. Please try again.</p>
+      </div>
+    );
+  }
+  
+  return (
+    <div>
+      <h2 className="text-2xl font-bold text-blue-700 mb-4">Performance Monitoring</h2>
+      
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+        <div className="bg-white p-4 rounded-lg shadow">
+          <h3 className="text-lg font-semibold mb-1">Ping Response</h3>
+          <div className="flex items-end gap-2">
+            <span className="text-3xl font-bold">{performanceMetrics.ping_response_time.toFixed(1)}</span>
+            <span className="text-gray-600 mb-1">ms</span>
           </div>
         </div>
         
         <div className="bg-white p-4 rounded-lg shadow">
-          <h3 className="text-lg font-semibold mb-3">System Stats</h3>
-          <div className="grid grid-cols-2 gap-4">
-            <div className="border p-3 rounded">
-              <p className="text-gray-600">Events Last Hour</p>
-              <p className="text-2xl font-bold">{performanceMetrics.events_last_hour}</p>
-            </div>
-            <div className="border p-3 rounded">
-              <p className="text-gray-600">Total Activities</p>
-              <p className="text-2xl font-bold">
-                {performanceMetrics.activity.reduce((sum, item) => sum + item.value, 0)}
-              </p>
-            </div>
+          <h3 className="text-lg font-semibold mb-1">CPU Usage</h3>
+          <div className="flex items-end gap-2">
+            <span className="text-3xl font-bold">{performanceMetrics.cpu_usage_percent.toFixed(1)}</span>
+            <span className="text-gray-600 mb-1">%</span>
+          </div>
+        </div>
+        
+        <div className="bg-white p-4 rounded-lg shadow">
+          <h3 className="text-lg font-semibold mb-1">Memory Usage</h3>
+          <div className="flex items-end gap-2">
+            <span className="text-3xl font-bold">{performanceMetrics.memory_usage_percent.toFixed(1)}</span>
+            <span className="text-gray-600 mb-1">%</span>
           </div>
         </div>
       </div>
-    );
-  };
+      
+      {/* Activity Chart */}
+      <div className="bg-white p-4 rounded-lg shadow mb-6">
+        <h3 className="text-lg font-semibold mb-3">System Activity</h3>
+        <div className="h-64">
+          <ResponsiveContainer width="100%" height="100%">
+            <BarChart
+              data={performanceMetrics.activity}
+              margin={{ top: 5, right: 30, left: 20, bottom: 5 }}
+            >
+              <CartesianGrid strokeDasharray="3 3" />
+              <XAxis dataKey="name" />
+              <YAxis />
+              <Tooltip />
+              <Legend />
+              <Bar dataKey="value" fill="#8884d8" name="Event Count" />
+            </BarChart>
+          </ResponsiveContainer>
+        </div>
+      </div>
+      
+      <div className="bg-white p-4 rounded-lg shadow">
+        <h3 className="text-lg font-semibold mb-3">System Stats</h3>
+        <div className="grid grid-cols-2 gap-4">
+          <div className="border p-3 rounded">
+            <p className="text-gray-600">Events Last Hour</p>
+            <p className="text-2xl font-bold">{performanceMetrics.events_last_hour}</p>
+          </div>
+          <div className="border p-3 rounded">
+            <p className="text-gray-600">Total Activities</p>
+            <p className="text-2xl font-bold">
+              {performanceMetrics.activity.reduce((sum, item) => sum + item.value, 0)}
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
 
   return (
     <div className="min-h-screen bg-gray-100 p-6">
