@@ -308,31 +308,26 @@ async def get_performance_metrics():
     try:
         import random
         
-        # Generate sample activity data
-        sample_activities = [
-            {"name": "Ping", "value": random.randint(5, 20)},
-            {"name": "Traceroute", "value": random.randint(3, 12)},
-            {"name": "Discovery", "value": random.randint(1, 8)},
-            {"name": "Analysis", "value": random.randint(2, 15)}
-        ]
-        
-        # Get real system data where possible, fall back to random values
-        current_ping_time = random.uniform(10, 100)
-        current_cpu_usage = random.uniform(5, 95)
-        current_memory_usage = random.uniform(20, 80)
-        
+        # Generate simple random metrics (no dependencies required)
         metrics = {
-            "ping_response_time": current_ping_time,
-            "cpu_usage_percent": current_cpu_usage,
-            "memory_usage_percent": current_memory_usage,
-            "activity": sample_activities,
-            "events_last_hour": sum(item["value"] for item in sample_activities)
+            "ping_response_time": random.uniform(10, 100),
+            "cpu_usage_percent": random.uniform(5, 95),
+            "memory_usage_percent": random.uniform(20, 80),
+            "activity": [
+                {"name": "Ping", "value": random.randint(5, 20)},
+                {"name": "Traceroute", "value": random.randint(3, 12)},
+                {"name": "Analysis", "value": random.randint(2, 15)}
+            ],
+            "events_last_hour": random.randint(10, 50)
         }
+        
+        # Log this activity
+        update_historical_logs("Performance metrics checked")
         
         return metrics
     except Exception as e:
         logging.error(f"Performance metrics error: {str(e)}")
-        # Return some default values instead of failing
+        # Return a very basic response that won't fail
         return {
             "ping_response_time": 50.0,
             "cpu_usage_percent": 45.0,
@@ -340,7 +335,6 @@ async def get_performance_metrics():
             "activity": [{"name": "System", "value": 10}],
             "events_last_hour": 10
         }
-
 # Dashboard Summary endpoint
 @app.get("/dashboard/summary")
 async def get_dashboard_summary():
