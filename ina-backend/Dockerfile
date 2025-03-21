@@ -13,15 +13,15 @@ RUN apt-get update && apt-get install -y \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/*
 
-# Copy requirements and model file
-COPY ./ina-backend/requirements.txt .
-COPY ./ina-backend/network_anomaly_model.pkl .
+# Copy requirements and model file first (for build caching)
+COPY ina-backend/requirements.txt .
+COPY ina-backend/network_anomaly_model.pkl .
 
 # Install dependencies
 RUN pip install --no-cache-dir -r requirements.txt
 
-# Copy the backend code
-COPY ./ina-backend /app
+# Copy the backend code 
+COPY ina-backend/ .
 
 # Expose the port FastAPI will run on
 EXPOSE 8000
