@@ -136,20 +136,12 @@ export const getSecurityAlerts = async (severity = null) => {
 // 🆕 Get Performance Metrics - Enhanced with better error handling and fallback data
 export const getPerformanceMetrics = async () => {
   try {
-    const response = await axios.get(`${BASE_URL}/performance/metrics`, {
-      headers: {
-        'Accept': 'application/json',
-        'Content-Type': 'application/json'
-      },
-      timeout: 10000 // 10 second timeout
-    });
+    const response = await axios.get(`${BASE_URL}/performance/metrics`);
     return response.data;
   } catch (error) {
     console.error("Performance metrics error:", error);
-    // Return fallback data with the error flag
-    return { 
-      error: true,
-      message: error.message || "Failed to fetch performance metrics",
+    // Return fallback data directly
+    return {
       ping_response_time: 50.0,
       cpu_usage_percent: 45.0,
       memory_usage_percent: 60.0,
@@ -162,7 +154,6 @@ export const getPerformanceMetrics = async () => {
     };
   }
 };
-
 // 🆕 Get Dashboard Summary
 export const getDashboardSummary = async () => {
   try {
