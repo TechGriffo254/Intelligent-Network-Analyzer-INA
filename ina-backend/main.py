@@ -1,6 +1,8 @@
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
+from network_discovery import network_discovery
+
 import os
 import subprocess
 import joblib
@@ -111,3 +113,11 @@ def historical_logs():
 @app.get("/")
 def home():
     return {"message": "Welcome to Intelligent Network Analyzer (INA) API"}
+# Network Discovery Endpoint
+@app.get("/network/discover/{subnet}")
+async def discover_network(subnet: str):
+    """Discover devices on a subnet (e.g., 192.168.1.0/24)"""
+    result = await network_discovery.discover_network(subnet)
+    if "error" not in result:
+        update_historical_logs(f"Network discovery on {subnet}")
+    return result
