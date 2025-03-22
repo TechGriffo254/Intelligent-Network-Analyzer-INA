@@ -2,54 +2,86 @@
 
 ## 🛠️ Project Overview
 
-**Intelligent Network Analyzer (INA)** is a powerful web-based application designed to monitor, analyze, and detect anomalies in network traffic in real-time. It provides actionable insights into network performance using **Ping**, **Traceroute**, and **Anomaly Detection** techniques.
+**Intelligent Network Analyzer (INA)** is a comprehensive network monitoring and diagnostic platform designed to provide real-time visibility into network performance, security, and topology. This all-in-one solution combines automated diagnostics, traffic analysis, security monitoring, and machine learning to help IT professionals identify and resolve network issues efficiently.
 
 ## 🎯 Key Features
 
-- 🔍 **Real-Time Network Analysis**: Perform **Ping** and **Traceroute** operations with real-time data visualization
-- 🧠 **Anomaly Detection**: Uses a **Machine Learning model** to identify abnormal network behavior
-- 📊 **Interactive Charts**: Displays network metrics with **intuitive, real-time charts**
-- 🛎️ **User Feedback**: Interactive loaders and **toast notifications** for ongoing operations
-- 📖 **Historical Logs**: Track past network events with a **dedicated chart**
-- ⚙️ **Cross-Platform Compatibility**: Runs seamlessly across **different network environments**
+- 🔍 **Advanced Network Diagnostics**: Run comprehensive Ping and Traceroute operations with in-depth statistical analysis
+- 🖧 **Network Discovery**: Automatically scan subnets to discover and map connected devices
+- 📊 **Traffic Analysis**: Visualize protocol distribution, top talkers, and bandwidth utilization
+- 🛡️ **Security Monitoring**: Track security alerts and potential threats with severity-based classification
+- 📈 **Performance Metrics**: Monitor system resources and network performance in real-time
+- 🧠 **Machine Learning-Powered Anomaly Detection**: Identify unusual network behavior using Isolation Forest algorithm
+- 📜 **Historical Logging**: Maintain comprehensive logs of all network events for trend analysis
+- 📱 **Responsive Interface**: Access all features through an intuitive tab-based dashboard
 
 ## 🧑‍💻 Tech Stack
 
 ### 🌐 Frontend
-- **React.js** – Interactive user interface
-- **Recharts** – Real-time network metrics visualization
-- **React-Toastify** – Real-time notifications
+- **React.js** – Component-based UI architecture
+- **Tailwind CSS** – Responsive styling with utility classes
+- **Recharts** – Interactive data visualization components
+- **Axios** – Promise-based HTTP client for API requests
+- **React-Toastify** – User-friendly notification system
 
 ### ⚙️ Backend
-- **FastAPI** – High-performance API framework
-- **Python (scikit-learn)** – **Machine Learning-based anomaly detection**
-- **Joblib** – **Model persistence**
-- **Subprocess** – **Ping/Traceroute execution**
+- **FastAPI** – High-performance, easy-to-use API framework
+- **Python 3.11** – Versatile language for network operations and data analysis
+- **Scikit-learn** – Machine learning library for anomaly detection
+- **Pandas & NumPy** – Data manipulation and analysis
+- **Network Tools** – Integration with system-level network utilities
 
-### ☁️ Deployment
-- **Koyeb** – Cloud-based deployment platform
+### 🛡️ DevOps
+- **Docker** – Containerization for consistent deployment
+- **Koyeb** – Cloud platform for backend hosting
+- **Vercel** – Frontend deployment and hosting
+
+## 🔄 System Architecture
+
+```
+┌─────────────────────────────────┐     ┌─────────────────────────────────┐
+│           FRONTEND              │     │             BACKEND              │
+│  ┌─────────────────────────┐   │     │  ┌─────────────────────────────┐ │
+│  │       Dashboard         │   │     │  │    FastAPI Application      │ │
+│  └─────────────────────────┘   │     │  └─────────────────────────────┘ │
+│  ┌───────────┐ ┌───────────┐   │     │  ┌───────────┐ ┌───────────────┐ │
+│  │ Network   │ │ Traffic   │   │     │  │ Network   │ │ Traffic       │ │
+│  │ Discovery │ │ Analysis  │   │     │  │ Tools     │ │ Analysis      │ │
+│  └───────────┘ └───────────┘   │     │  └───────────┘ └───────────────┘ │
+│  ┌───────────┐ ┌───────────┐   │     │  ┌───────────┐ ┌───────────────┐ │
+│  │ Security  │ │Performance│   │ ◄─► │  │ Security  │ │ ML-based      │ │
+│  │ Monitoring│ │ Metrics   │   │     │  │ Monitoring│ │ Anomaly       │ │
+│  └───────────┘ └───────────┘   │     │  └───────────┘ └───────────────┘ │
+│  ┌───────────┐                 │     │  ┌───────────────────────────────┐│
+│  │Diagnostics│                 │     │  │      Historical Logging       ││
+│  └───────────┘                 │     │  └───────────────────────────────┘│
+└─────────────────────────────────┘     └─────────────────────────────────┘
+```
 
 ## 🚀 Live Demo
 
-🌐 **Live URL:** [INA Live App](https://ina-griffo.koyeb.app)
+🌐 **Live URL:** [INA Live App](https://ina-griffins.vercel.app)  
+🔧 **API Endpoint:** [INA API](https://ina-griffo.koyeb.app)
 
 ## ⚙️ Installation & Setup
 
 ### 1️⃣ Clone the Repository
 
 ```bash
-git clone https://github.com/TechGriffo254/-Intelligent-Network-Analyzer-INA.git
-cd -Intelligent-Network-Analyzer-INA
+git clone https://github.com/TechGriffo254/Intelligent-Network-Analyzer-INA.git
+cd Intelligent-Network-Analyzer-INA
 ```
 
 ### 2️⃣ Backend Setup
 
 ```bash
 cd ina-backend
+
+# Create and activate virtual environment
 python -m venv venv
 
 # Windows
-source venv/Scripts/activate
+venv\Scripts\activate
 
 # Linux/Mac
 source venv/bin/activate
@@ -64,176 +96,161 @@ uvicorn main:app --host 0.0.0.0 --port 8000 --reload
 ### 3️⃣ Frontend Setup
 
 ```bash
-cd ../ina-frontend
+cd ina-frontend
+
+# Install dependencies
 npm install
+
+# Start development server
+npm start
+```
+
+### 4️⃣ Docker Deployment (Optional)
+
+```bash
+# Build and run backend container
+docker build -t ina-backend ./ina-backend
+docker run -p 8000:8000 ina-backend
+
+# In a separate terminal, run frontend
+cd ina-frontend
 npm start
 ```
 
 ## 📡 API Endpoints
 
-### 1. Ping a Host
+### Core Diagnostic Endpoints
 
-- **URL:** `/ping/{host}`
-- **Method:** GET
-- **Description:** Sends 4 ICMP Echo Requests to the target host
+| Endpoint | Method | Description |
+|----------|--------|-------------|
+| `/ping/{host}` | GET | Run ping diagnostic on specified host |
+| `/traceroute/{host}` | GET | Perform traceroute to specified host |
+| `/predict-anomalies/` | POST | Detect network anomalies using ML model |
+| `/historical-logs/` | GET | Retrieve historical network events |
 
-**Example:**
-```bash
-GET /ping/google.com
+### Advanced Network Analysis
+
+| Endpoint | Method | Description |
+|----------|--------|-------------|
+| `/network/discover/{subnet}` | GET | Discover devices on a subnet |
+| `/network/device/{ip}` | GET | Get detailed information about a device |
+| `/traffic/analyze` | GET | Analyze current network traffic patterns |
+| `/security/alerts` | GET | Get security alerts with optional filtering |
+| `/performance/metrics` | GET | Get system performance metrics |
+| `/dashboard/summary` | GET | Get consolidated summary for dashboard |
+
+## 📊 Usage Examples
+
+### Network Discovery
+Scan your local subnet to identify all connected devices:
+
+```javascript
+const result = await fetch('/network/discover/192.168.1.0/24');
+const devices = await result.json();
+console.log(`Discovered ${devices.discovered_hosts} devices on the network`);
 ```
 
-**Sample Response:**
-```json
-{
-  "host": "google.com",
-  "output": [
-    "PING google.com (142.250.180.206): 56 data bytes",
-    "64 bytes from 142.250.180.206: icmp_seq=0 ttl=118 time=24.3 ms",
-    "--- google.com ping statistics ---",
-    "4 packets transmitted, 4 packets received, 0.0% packet loss",
-    "round-trip min/avg/max/stddev = 23.2/24.4/26.1/0.5 ms"
-  ]
-}
+### Anomaly Detection
+Submit network metrics to check for abnormal patterns:
+
+```javascript
+const response = await fetch('/predict-anomalies/', {
+  method: 'POST',
+  headers: { 'Content-Type': 'application/json' },
+  body: JSON.stringify({
+    avg_rtt: 89.7,
+    max_rtt: 120.5,
+    num_hops: 12
+  })
+});
+const analysis = await response.json();
+console.log(`Network status: ${analysis.result}`);
 ```
 
-### 2. Traceroute a Host
+## 🧠 Machine Learning Implementation
 
-- **URL:** `/traceroute/{host}`
-- **Method:** GET
-- **Description:** Traces the network path to a specified host
+The INA system uses an **Isolation Forest** algorithm for anomaly detection based on three key network metrics:
 
-**Example:**
-```bash
-GET /traceroute/google.com
-```
+1. **Average Round Trip Time (RTT)**: Typical response time for network packets
+2. **Maximum RTT**: Highest observed latency during testing
+3. **Number of Hops**: Count of network segments traversed
 
-**Sample Response:**
-```json
-{
-  "host": "google.com",
-  "output": [
-    "1 192.168.1.1 1.2 ms",
-    "2 10.10.10.1 3.5 ms",
-    "3 142.250.180.206 24.1 ms"
-  ]
-}
-```
+The model identifies anomalies by detecting statistical outliers:
+- **Normal traffic**: Consistent RTT values (typically <150ms) with predictable routing
+- **Anomalous traffic**: Unusually high latency, packet loss, or unexpected routing changes
 
-### 3. Predict Network Anomalies
+The system performs multiple test runs per operation to improve statistical reliability and reduce false positives.
 
-- **URL:** `/predict-anomalies/`
-- **Method:** POST
-- **Description:** Uses an Isolation Forest model to predict network anomalies based on RTT and hops
+## 🔧 Troubleshooting
 
-**Request Body:**
-```json
-{
-  "avg_rtt": 100,
-  "max_rtt": 150,
-  "num_hops": 5
-}
-```
+| Issue | Cause | Solution |
+|-------|-------|----------|
+| "Failed to fetch performance metrics" | API connection issue | Check Koyeb service status, verify network connectivity |
+| "Network discovery failed" | Permission or subnet issues | Ensure proper network access, try a smaller subnet range |
+| Blank or incomplete dashboard | Data loading error | Check browser console for errors, verify API connection |
+| Authentication failures | Environment variables not set | Configure proper authentication credentials in .env file |
 
-**Sample Response:**
-```json
-{
-  "result": "Normal traffic",
-  "details": "No anomalies detected."
-}
-```
+## 🌟 Advanced Features
 
-### 4. Retrieve Historical Logs
+### Real-time Monitoring
+- **WebSocket Support**: Subscribe to real-time network events
+- **Visual Alerts**: Immediate notification of critical issues
+- **Trend Analysis**: Spot developing problems before they impact users
 
-- **URL:** `/historical-logs/`
-- **Method:** GET
-- **Description:** Retrieves historical network events
+### Security Analysis
+- **Threat Detection**: Identify suspicious network activity
+- **Alert Classification**: Prioritize issues by severity level
+- **Security Dashboard**: Comprehensive security overview
 
-**Sample Response:**
-```json
-{
-  "logs": [
-    {"timestamp": "2025-02-10 14:00", "event": "Ping to google.com - 50ms"},
-    {"timestamp": "2025-02-10 14:05", "event": "Traceroute anomaly detected"},
-    {"timestamp": "2025-02-10 14:10", "event": "Anomaly detected: high latency"}
-  ]
-}
-```
+### Network Visualization
+- **Interactive Topology**: Visual representation of network devices
+- **Performance Graphs**: Real-time metrics visualization
+- **Traffic Flow Analysis**: Identify bandwidth utilization patterns
 
-## 🧠 Understanding the Anomaly Detection
-
-The Isolation Forest model is trained to detect anomalies based on:
-- Average Round Trip Time (RTT)
-- Maximum Round Trip Time (RTT)
-- Number of Hops
-
-**Normal traffic** typically has:
-- RTT values ≈ 100ms
-- Low variability in RTT across runs
-
-**Anomalous traffic:**
-- High RTT spikes (> 300ms)
-- Irregular traceroute paths
-
-The app uses 5 runs of Ping/Traceroute per click to improve accuracy.
-
-## ⚠️ Troubleshooting
-
-### ❌ 1. "Failed to fetch network data for anomaly detection."
-**Cause:** Ping/Traceroute APIs failed to return results
-**Fix:**
-- Ensure network connectivity
-- Restart backend if the issue persists
-
-### ❌ 2. Anomaly Detection Always Says "Anomaly Detected"
-**Cause:** Model trained incorrectly
-**Fix:**
-- Retrain the model locally using retrain_model.py
-- Upload the new network_anomaly_model.pkl to Koyeb
-
-Run the retrain script:
-```bash
-python retrain_model.py
-```
-
-### ❌ 3. Blank Frontend Screen
-**Cause:** Missing dependencies
-**Fix:**
-```bash
-npm install react-toastify recharts axios
-npm start
-```
-
-## 🎯 Future Improvements
-
-- 🤖 **Model Optimization:** Improve anomaly detection accuracy with better training data
-- 📊 **Customizable Analysis:** Allow users to customize the number of Ping/Traceroute runs
-- ⚙️ **Advanced Diagnostics:** Include DNS lookup and packet capture
-
-## 📖 Project Structure
+## 🗂️ Project Structure
 
 ```plaintext
 📂 Intelligent-Network-Analyzer
    ├── 📁 ina-backend
-   │   ├── main.py                # FastAPI server
-   │   ├── retrain_model.py       # Model retraining
-   │   ├── network_anomaly_model.pkl # Pretrained ML model
-   │   └── requirements.txt       # Backend dependencies
+   │   ├── main.py                  # FastAPI application
+   │   ├── network_discovery.py     # Network discovery module
+   │   ├── traffic_analysis.py      # Traffic analysis module
+   │   ├── network_anomaly_model.pkl # Pre-trained ML model
+   │   ├── requirements.txt         # Backend dependencies
+   │   └── Dockerfile               # Backend container config
    │
    ├── 📁 ina-frontend
-   │   ├── src
-   │   │   ├── App.js            # React main component
-   │   │   ├── api.js            # Frontend API logic
-   │   │   └── index.js          # App entry point
-   │   ├── package.json          # Frontend dependencies
-   │   └── public                # Static files
+   │   ├── public/                  # Static assets
+   │   ├── src/
+   │   │   ├── App.js               # Main application component
+   │   │   ├── api.js               # API client functions
+   │   │   └── index.js             # Application entry point
+   │   ├── package.json             # Frontend dependencies
+   │   └── tailwind.config.js       # Tailwind CSS configuration
    │
-   └── 📄 README.md               # Project documentation
+   ├── 📄 docker-compose.yml        # Multi-container config
+   └── 📄 README.md                 # Project documentation
 ```
 
-## 🎯 Contributors
+## 🚀 Future Roadmap
 
-👨‍💻 Mudenyo Griffins – Lead Developer
+- 🔐 **User Authentication**: Role-based access control for team environments
+- 🔍 **Deep Packet Inspection**: Advanced protocol analysis
+- 📱 **Mobile Application**: Native mobile client for on-the-go monitoring
+- 🤖 **Automated Remediation**: AI-powered issue resolution suggestions
+- 🔌 **Integration APIs**: Connect with other IT management systems
+- 🌐 **Multi-site Monitoring**: Support for distributed network environments
 
-## 📜 License
+## 👥 Contributors
 
-🛡️ MIT License – Free for commercial and personal use.
+👨‍💻 **Mudenyo Griffins** – Project Lead & Developer (COM/0065/21)  
+🏫 **Kibabii University** – Bachelor of Science in Computer Science
+
+## 📄 License
+
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+
+---
+
+📧 **Contact**: [griffinsmudenyo@gmail.com](mailto:griffinsmudenyo@gmail.com)  
+🔗 **GitHub**: [TechGriffo254](https://github.com/TechGriffo254)
