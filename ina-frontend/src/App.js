@@ -1,10 +1,10 @@
-import React, { useState, useEffect } from "react";
-import { 
-  pingServer, 
-  tracerouteServer, 
-  predictAnomalies, 
-  getHistoricalLogs, 
-  parsePingData, 
+import React, { useState, useEffect, useRef } from "react";
+import {
+  pingServer,
+  tracerouteServer,
+  predictAnomalies,
+  getHistoricalLogs,
+  parsePingData,
   parseTracerouteData,
   discoverNetwork,
   analyzeTraffic,
@@ -12,14 +12,14 @@ import {
   getDashboardSummary,
   getPerformanceMetrics
 } from "./api";
-import { 
-  LineChart, 
-  Line, 
-  XAxis, 
-  YAxis, 
-  CartesianGrid, 
-  Tooltip, 
-  Legend, 
+import {
+  LineChart,
+  Line,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  Legend,
   ResponsiveContainer,
   PieChart,
   Pie,
@@ -30,6 +30,9 @@ import {
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import * as d3 from 'd3';
+
+// Constants come after imports
+const BASE_URL = "https://ina-griffo.koyeb.app";
 function App() {
   // Active Tab State
   const [activeTab, setActiveTab] = useState("dashboard");
