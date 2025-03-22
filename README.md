@@ -60,7 +60,7 @@
 
 ## 🚀 Live Demo
 
-🌐 **Live URL:** [INA Live App](https://ina-griffins.vercel.app)  
+🌐 **Live URL:** [INA Live App](https://intelligent-network-analyzer-ina.vercel.app/)
 🔧 **API Endpoint:** [INA API](https://ina-griffo.koyeb.app)
 
 ## ⚙️ Installation & Setup
