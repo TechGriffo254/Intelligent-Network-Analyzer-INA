@@ -381,3 +381,53 @@ async def get_dashboard_summary():
 @app.get("/")
 def home():
     return {"message": "Welcome to Intelligent Network Analyzer (INA) API", "status": "running"}
+
+
+@app.get("/network/topology/{subnet}")
+async def get_network_topology(subnet: str):
+    """Get network topology data for visualization"""
+    try:
+        # First, discover devices on the subnet
+        discovery_result = await network_discovery.discover_network(subnet)
+        
+        if "error" in discovery_result:
+            return discovery_result
+        
+        # Create topology data structure
+        topology = {
+            "nodes": [
+                # Gateway/router node
+                {
+                    "id": "router",
+                    "name": "Router/Gateway",
+                    "type": "router",
+                    "ip": subnet.split("/")[0],  # Use subnet base as router IP
+                    "status": "active"
+                }
+            ],
+            "links": []
+        }
+        
+        # Add discovered devices as nodes
+        for device in discovery_result.get("devices", []):
+            node_id = f"device_{device['ip'].replace('.', '_')}"
+            device_node = {
+                "id": node_id,
+                "name": device.get("hostname", "") or device["ip"].split(".")[-1],
+                "type": "host",
+                "ip": device["ip"],
+                "status": device.get("status", "unknown")
+            }
+            topology["nodes"].append(device_node)
+            
+            # Add link to router
+            topology["links"].append({
+                "source": "router",
+                "target": node_id,
+                "value": 1
+            })
+        
+        return topology
+    except Exception as e:
+        logging.error(f"Network topology error: {str(e)}")
+        raise HTTPException(status_code=500, detail=str(e))
