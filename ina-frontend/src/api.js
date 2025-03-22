@@ -180,3 +180,14 @@ export const getDashboardSummary = async () => {
     };
   }
 };
+
+// 🆕 Get Network Topology
+export const getNetworkTopology = async (subnet) => {
+  try {
+    const response = await axios.get(`${BASE_URL}/network/topology/${subnet}`);
+    return response.data;
+  } catch (error) {
+    console.error("Network topology error:", error);
+    return { error: "Failed to fetch network topology." };
+  }
+};
