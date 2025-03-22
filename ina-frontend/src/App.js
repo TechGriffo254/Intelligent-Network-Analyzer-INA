@@ -29,7 +29,7 @@ import {
 } from "recharts";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
-
+import * as d3 from 'd3';
 function App() {
   // Active Tab State
   const [activeTab, setActiveTab] = useState("dashboard");
@@ -207,6 +207,150 @@ function App() {
   
     setIsLoadingAnomaly(false);
   };
+
+// Add this state in your component
+const [networkTopology, setNetworkTopology] = useState(null);
+const [isLoadingTopology, setIsLoadingTopology] = useState(false);
+const networkRef = useRef(null);
+
+// Add this function to render the topology
+const renderNetworkTopology = () => {
+  if (!networkRef.current || !networkTopology) return;
+
+  const width = 800;
+  const height = 600;
+  
+  // Clear any existing visualization
+  d3.select(networkRef.current).selectAll("*").remove();
+  
+  // Create SVG container
+  const svg = d3.select(networkRef.current)
+    .append("svg")
+    .attr("width", width)
+    .attr("height", height)
+    .attr("viewBox", [0, 0, width, height]);
+  
+  // Create simulation
+  const simulation = d3.forceSimulation(networkTopology.nodes)
+    .force("link", d3.forceLink(networkTopology.links).id(d => d.id).distance(100))
+    .force("charge", d3.forceManyBody().strength(-400))
+    .force("center", d3.forceCenter(width / 2, height / 2))
+    .force("collision", d3.forceCollide().radius(50));
+  
+  // Create links
+  const link = svg.append("g")
+    .selectAll("line")
+    .data(networkTopology.links)
+    .join("line")
+    .attr("stroke", "#999")
+    .attr("stroke-opacity", 0.6)
+    .attr("stroke-width", d => Math.sqrt(d.value));
+  
+  // Create node groups
+  const node = svg.append("g")
+    .selectAll("g")
+    .data(networkTopology.nodes)
+    .join("g")
+    .call(drag(simulation));
+  
+  // Add device icons/circles
+  node.append("circle")
+    .attr("r", d => d.type === 'router' ? 25 : 15)
+    .attr("fill", d => {
+      if (d.type === 'router') return "#FF8C00";
+      if (d.type === 'server') return "#4CAF50";
+      return d.status === 'active' ? "#1E88E5" : "#E53935";
+    });
+  
+  // Add labels
+  node.append("text")
+    .attr("dx", 20)
+    .attr("dy", ".35em")
+    .text(d => d.name)
+    .style("font-size", "12px")
+    .style("fill", "#333");
+  
+  // Add tooltips
+  node.append("title")
+    .text(d => `${d.name}\nIP: ${d.ip}\nType: ${d.type}\nStatus: ${d.status}`);
+  
+  // Update positions on tick
+  simulation.on("tick", () => {
+    link
+      .attr("x1", d => d.source.x)
+      .attr("y1", d => d.source.y)
+      .attr("x2", d => d.target.x)
+      .attr("y2", d => d.target.y);
+    
+    node.attr("transform", d => `translate(${d.x},${d.y})`);
+  });
+  
+  // Drag functionality
+  function drag(simulation) {
+    function dragstarted(event) {
+      if (!event.active) simulation.alphaTarget(0.3).restart();
+      event.subject.fx = event.subject.x;
+      event.subject.fy = event.subject.y;
+    }
+    
+    function dragged(event) {
+      event.subject.fx = event.x;
+      event.subject.fy = event.y;
+    }
+    
+    function dragended(event) {
+      if (!event.active) simulation.alphaTarget(0);
+      event.subject.fx = null;
+      event.subject.fy = null;
+    }
+    
+    return d3.drag()
+      .on("start", dragstarted)
+      .on("drag", dragged)
+      .on("end", dragended);
+  }
+};
+
+// Add this effect to update the visualization when data changes
+useEffect(() => {
+  if (networkTopology) {
+    renderNetworkTopology();
+  }
+}, [networkTopology]);
+
+// Function to get network topology
+const fetchNetworkTopology = async (subnet) => {
+  setIsLoadingTopology(true);
+  try {
+    const response = await fetch(`${BASE_URL}/network/topology/${subnet || '192.168.1.0/24'}`);
+    if (!response.ok) {
+      throw new Error(`Network topology request failed: ${response.status}`);
+    }
+    const data = await response.json();
+    setNetworkTopology(data);
+  } catch (error) {
+    console.error("Error fetching network topology:", error);
+    toast.error("Failed to get network topology. Using sample data.");
+    // Provide sample topology data
+    setNetworkTopology({
+      nodes: [
+        { id: "router", name: "Router", type: "router", ip: "192.168.1.1", status: "active" },
+        { id: "device1", name: "Desktop-1", type: "host", ip: "192.168.1.10", status: "active" },
+        { id: "device2", name: "Laptop-1", type: "host", ip: "192.168.1.15", status: "active" },
+        { id: "device3", name: "Printer", type: "host", ip: "192.168.1.20", status: "inactive" },
+        { id: "device4", name: "Server", type: "server", ip: "192.168.1.25", status: "active" }
+      ],
+      links: [
+        { source: "router", target: "device1", value: 1 },
+        { source: "router", target: "device2", value: 1 },
+        { source: "router", target: "device3", value: 1 },
+        { source: "router", target: "device4", value: 2 }
+      ]
+    });
+  } finally {
+    setIsLoadingTopology(false);
+  }
+};
 
   // Handle Network Discovery
   const handleNetworkDiscovery = async () => {
@@ -652,10 +796,15 @@ function App() {
   );
 
   // Network Discovery Tab
-  const renderNetworkDiscovery = () => (
+// In your renderNetworkDiscovery function, add:
+const renderNetworkDiscovery = () => {
+  // Your existing code...
+  
+  return (
     <div>
       <h2 className="text-2xl font-bold text-blue-700 mb-4">Network Discovery</h2>
       
+      {/* Subnet scanning form */}
       <div className="flex flex-col md:flex-row gap-4 mb-6">
         <div className="flex-1">
           <input
@@ -667,7 +816,10 @@ function App() {
           />
         </div>
         <button
-          onClick={handleNetworkDiscovery}
+          onClick={() => {
+            handleNetworkDiscovery();
+            fetchNetworkTopology(subnet);
+          }}
           className={`px-6 py-2 rounded-md ${
             isDiscovering ? "bg-gray-400" : "bg-blue-500"
           } text-white hover:bg-blue-600`}
@@ -677,58 +829,30 @@ function App() {
         </button>
       </div>
       
+      {/* Network Topology Visualization - NEW! */}
+      <div className="mb-6">
+        <h3 className="text-xl font-semibold text-blue-600 mb-3">Network Topology</h3>
+        {isLoadingTopology ? (
+          <div className="flex justify-center items-center h-96">
+            <p className="text-lg text-gray-600">Loading network topology...</p>
+          </div>
+        ) : (
+          <div 
+            ref={networkRef} 
+            className="border rounded-lg bg-gray-50 h-96 overflow-hidden"
+          ></div>
+        )}
+      </div>
+      
+      {/* Your existing device table */}
       {discoveryResults && (
         <div className="mt-4">
-          <div className="bg-blue-50 p-4 rounded-md mb-4">
-            <h3 className="text-lg font-semibold mb-2">Scan Results</h3>
-            <p>Subnet: {discoveryResults.subnet}</p>
-            <p>Total Hosts: {discoveryResults.total_hosts}</p>
-            <p>Discovered Devices: {discoveryResults.discovered_hosts}</p>
-          </div>
-          
-          {discoveryResults.devices && discoveryResults.devices.length > 0 && (
-            <div className="overflow-x-auto">
-              <table className="min-w-full bg-white border">
-                <thead>
-                  <tr>
-                    <th className="py-2 px-4 border-b">IP Address</th>
-                    <th className="py-2 px-4 border-b">Hostname</th>
-                    <th className="py-2 px-4 border-b">Status</th>
-                    <th className="py-2 px-4 border-b">Actions</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {discoveryResults.devices.map((device, index) => (
-                    <tr key={index} className={index % 2 === 0 ? "bg-gray-50" : "bg-white"}>
-                      <td className="py-2 px-4 border-b">{device.ip}</td>
-                      <td className="py-2 px-4 border-b">{device.hostname || "-"}</td>
-                      <td className="py-2 px-4 border-b">
-                        <span className="px-2 py-1 rounded-full bg-green-100 text-green-800">
-                          {device.status}
-                        </span>
-                      </td>
-                      <td className="py-2 px-4 border-b">
-                        <button 
-                          className="px-3 py-1 bg-blue-500 text-white rounded hover:bg-blue-600"
-                          onClick={() => {
-                            setHost(device.ip);
-                            setActiveTab("diagnostics");
-                            toast.info(`Set target to ${device.ip} - run diagnostics now`);
-                          }}
-                        >
-                          Test
-                        </button>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          )}
+          {/* ... your existing code ... */}
         </div>
       )}
     </div>
   );
+};
 
   // Traffic Analysis Tab
   const renderTrafficAnalysis = () => {
@@ -979,40 +1103,14 @@ function App() {
 
   
 // Performance Metrics Fetching Function (with error handling)
+// In your fetchPerformanceMetrics function
 const fetchPerformanceMetrics = async () => {
   setIsLoadingPerformance(true);
-  
   try {
     const data = await getPerformanceMetrics();
-    
-    if (data.error) {
-      toast.error("Failed to fetch performance metrics. Using demo data instead.");
-      // Still use the data from the API response (which includes fallback values)
-      setPerformanceMetrics({
-        ping_response_time: data.ping_response_time,
-        cpu_usage_percent: data.cpu_usage_percent,
-        memory_usage_percent: data.memory_usage_percent,
-        activity: data.activity,
-        events_last_hour: data.events_last_hour
-      });
-    } else {
-      // No error, use the data directly
-      setPerformanceMetrics(data);
-    }
-  } catch (e) {
-    // Additional safety
-    console.error("Unexpected error in fetchPerformanceMetrics:", e);
-    setPerformanceMetrics({
-      ping_response_time: 50.0,
-      cpu_usage_percent: 45.0,
-      memory_usage_percent: 60.0,
-      activity: [
-        {"name": "Ping", "value": 10},
-        {"name": "Traceroute", "value": 5},
-        {"name": "Analysis", "value": 8}
-      ],
-      events_last_hour: 23
-    });
+    setPerformanceMetrics(data);
+  } catch (error) {
+    console.error("Error fetching performance metrics:", error);
     toast.error("Failed to fetch performance metrics. Using demo data instead.");
   } finally {
     setIsLoadingPerformance(false);
@@ -1046,19 +1144,25 @@ const renderPerformanceMonitoring = () => {
     );
   }
   
+  // Only access properties if performanceMetrics exists
+  const pingResponse = performanceMetrics.ping_response_time || 0;
+  const cpuUsage = performanceMetrics.cpu_usage_percent || 0;
+  const memoryUsage = performanceMetrics.memory_usage_percent || 0;
+  const activity = performanceMetrics.activity || [];
+  const eventsLastHour = performanceMetrics.events_last_hour || 0;
+  
   return (
     <div>
       <h2 className="text-2xl font-bold text-blue-700 mb-4">Performance Monitoring</h2>
-      
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
         <div className="bg-white p-4 rounded-lg shadow">
           <h3 className="text-lg font-semibold mb-1">Ping Response</h3>
           <div className="flex items-end gap-2">
-            <span className="text-3xl font-bold">{performanceMetrics.ping_response_time.toFixed(1)}</span>
+            <span className="text-3xl font-bold">{pingResponse.toFixed(1)}</span>
             <span className="text-gray-600 mb-1">ms</span>
           </div>
         </div>
-        
+
         <div className="bg-white p-4 rounded-lg shadow">
           <h3 className="text-lg font-semibold mb-1">CPU Usage</h3>
           <div className="flex items-end gap-2">
