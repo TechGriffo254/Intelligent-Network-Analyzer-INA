@@ -244,7 +244,7 @@ The system performs multiple test runs per operation to improve statistical reli
 ## 👥 Contributors
 
 👨‍💻 **Mudenyo Griffins** – Project Lead & Developer (COM/0065/21)  
-🏫 **Kibabii University** – Bachelor of Science in Computer Science
+🏫 Bachelor of Science in Computer Science
 
 ## 📄 License
 
